@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sweet India Clyde — WhatsApp Broadcast Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --wa-teal:#00a884;
+  --wa-teal-dark:#008069;
+  --wa-header:#f0f2f5;
+  --wa-bg:#efeae2;
+  --wa-sidebar:#ffffff;
+  --wa-sent:#d9fdd3;
+  --wa-received:#ffffff;
+  --wa-dark:#111b21;
+  --wa-text:#111b21;
+  --wa-secondary:#667781;
+  --wa-border:#e9edef;
+  --wa-input:#f0f2f5;
+  --wa-blue:#027eb5;
+  --wa-light-green:#e7fce3;
+  --wa-unread:#25d366;
+}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes typing{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes tickAppear{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+@keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes phoneBuzz{0%,100%{transform:rotate(0)}10%,30%,50%{transform:rotate(-2deg)}20%,40%{transform:rotate(2deg)}}
+@keyframes notifSlide{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes progressFill{from{width:0}to{width:100%}}
+@keyframes greenTick{from{stroke-dashoffset:20}to{stroke-dashoffset:0}}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  background:#0b141a;
+  color:var(--wa-text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== TOP CONTROL BAR ===== */
+.control-bar{
+  background:linear-gradient(135deg,#0b141a 0%,#1a2c38 100%);
+  padding:16px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  flex-wrap:wrap;
+  position:sticky;top:0;z-index:100;
+}
+
+.control-bar .title-area{
+  display:flex;align-items:center;gap:10px;margin-right:auto;
+}
+.control-bar .wa-icon{
+  width:36px;height:36px;border-radius:50%;background:var(--wa-teal);
+  display:flex;align-items:center;justify-content:center;
+}
+.control-bar .wa-icon svg{width:20px;height:20px;fill:#fff;}
+.control-bar h1{color:#fff;font-size:15px;font-weight:600;}
+.control-bar .subtitle{color:rgba(255,255,255,0.45);font-size:11px;}
+
+.step-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.step-pill{
+  padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;
+  cursor:pointer;border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.45);
+  transition:all .25s;position:relative;
+}
+.step-pill:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);}
+.step-pill.active{background:var(--wa-teal);border-color:var(--wa-teal);color:#fff;}
+.step-pill.completed{background:rgba(0,168,132,0.15);border-color:var(--wa-teal);color:var(--wa-teal);}
+.step-pill .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;font-size:10px;
+  margin-right:6px;background:rgba(255,255,255,0.15);
+}
+.step-pill.active .num{background:rgba(255,255,255,0.25);}
+.step-pill.completed .num{background:var(--wa-teal);color:#fff;}
+
+.cta-btn{
+  padding:10px 28px;border-radius:24px;font-size:13px;font-weight:700;
+  cursor:pointer;border:none;background:var(--wa-teal);color:#fff;
+  transition:all .2s;margin-left:auto;
+}
+.cta-btn:hover{background:var(--wa-teal-dark);transform:scale(1.03);}
+.cta-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+/* ===== CAMPAIGN BUILDER ===== */
+.campaign-builder{
+  background:#0b141a;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:18px 24px 16px;
+}
+.campaign-builder-inner{
+  width:min(1180px,100%);
+  margin:0 auto;
+}
+.campaign-builder-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;margin-bottom:12px;
+}
+.campaign-builder-title{
+  color:#fff;font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.campaign-builder-sub{
+  color:rgba(255,255,255,0.42);font-size:12px;
+}
+.campaign-selector{
+  display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));
+  gap:10px;
+}
+.campaign-card{
+  min-height:96px;padding:12px;border-radius:14px;
+  background:rgba(31,44,51,0.62);
+  border:1px solid rgba(255,255,255,0.07);
+  color:#fff;cursor:pointer;text-align:left;
+  transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;
+}
+.campaign-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(0,168,132,0.45);
+  background:rgba(31,44,51,0.82);
+}
+.campaign-card.active{
+  border-color:var(--wa-teal);
+  box-shadow:0 0 0 1px rgba(0,168,132,0.28),0 14px 34px rgba(0,168,132,0.12);
+  background:linear-gradient(180deg,rgba(0,168,132,0.18),rgba(31,44,51,0.74));
+}
+.campaign-card-top{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-bottom:10px;
+}
+.campaign-emoji{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:rgba(255,255,255,0.08);
+}
+.campaign-count{
+  color:rgba(255,255,255,0.45);font-size:11px;font-weight:700;
+}
+.campaign-name{
+  color:#fff;font-size:13px;font-weight:800;line-height:1.2;
+}
+.campaign-segment{
+  color:rgba(255,255,255,0.48);font-size:11px;margin-top:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.weather-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  color:#9ee7ff;background:rgba(83,189,235,0.12);
+  border:1px solid rgba(83,189,235,0.2);
+  border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700;
+  margin-top:8px;
+}
+
+/* ===== MAIN STAGE ===== */
+.stage{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:24px;gap:32px;flex-wrap:wrap;
+}
+
+/* ===== PHONE FRAME ===== */
+.phone{
+  width:375px;height:720px;border-radius:40px;overflow:hidden;
+  background:#0b141a;box-shadow:0 20px 80px rgba(0,0,0,0.5),0 0 0 2px rgba(255,255,255,0.08);
+  display:flex;flex-direction:column;position:relative;
+  transition:transform .3s;
+}
+.phone.buzz{animation:phoneBuzz .4s ease;}
+
+/* Phone status bar */
+.phone-statusbar{
+  height:44px;background:var(--wa-teal-dark);
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 24px 6px;font-size:12px;color:#fff;font-weight:600;
+}
+
+/* WA header inside phone */
+.wa-header{
+  background:var(--wa-teal-dark);padding:6px 10px 10px;
+  display:flex;align-items:center;gap:10px;
+}
+.wa-back svg{width:20px;height:20px;fill:rgba(255,255,255,0.9);cursor:pointer;}
+.wa-avatar{
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;flex-shrink:0;
+  overflow:hidden;
+}
+.wa-avatar.biz{background:linear-gradient(135deg,#ff9800,#f44336);}
+.wa-avatar img{width:100%;height:100%;object-fit:cover;}
+.wa-hdr-info{flex:1;}
+.wa-hdr-name{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:4px;}
+.wa-hdr-name .verified{
+  width:16px;height:16px;background:var(--wa-teal);border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.wa-hdr-name .verified svg{width:10px;height:10px;fill:#fff;}
+.wa-hdr-status{font-size:12px;color:rgba(255,255,255,0.65);}
+.wa-hdr-icons{display:flex;gap:16px;}
+.wa-hdr-icons svg{width:20px;height:20px;fill:rgba(255,255,255,0.85);cursor:pointer;}
+
+/* Chat area */
+.wa-chat{
+  flex:1;overflow-y:auto;padding:8px 12px 12px;
+  background-color:#0b141a;
+  background-image:url("data:image/svg+xml,%3Csvg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M20 20h8v8h-8zM60 60h8v8h-8zM100 20h8v8h-8zM140 60h8v8h-8zM180 20h8v8h-8zM220 60h8v8h-8zM260 20h8v8h-8zM300 60h8v8h-8zM340 20h8v8h-8zM20 100h8v8h-8zM60 140h8v8h-8zM100 100h8v8h-8zM140 140h8v8h-8zM180 100h8v8h-8zM220 140h8v8h-8zM260 100h8v8h-8zM300 140h8v8h-8zM340 100h8v8h-8zM20 180h8v8h-8zM60 220h8v8h-8zM100 180h8v8h-8zM140 220h8v8h-8zM180 180h8v8h-8zM220 220h8v8h-8zM260 180h8v8h-8zM300 220h8v8h-8zM340 180h8v8h-8zM20 260h8v8h-8zM60 300h8v8h-8zM100 260h8v8h-8zM140 300h8v8h-8zM180 260h8v8h-8zM220 300h8v8h-8zM260 260h8v8h-8zM300 300h8v8h-8zM340 260h8v8h-8zM20 340h8v8h-8zM60 380h8v8h-8zM100 340h8v8h-8zM140 380h8v8h-8zM180 340h8v8h-8zM220 380h8v8h-8zM260 340h8v8h-8zM300 380h8v8h-8zM340 340h8v8h-8z'/%3E%3C/g%3E%3C/svg%3E");
+  display:flex;flex-direction:column;gap:4px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;
+}
+
+.wa-chat::-webkit-scrollbar{width:5px;}
+.wa-chat::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+
+/* Date chip */
+.date-chip{
+  align-self:center;background:rgba(17,27,33,0.85);
+  padding:5px 14px;border-radius:8px;font-size:11px;
+  color:rgba(255,255,255,0.7);margin:8px 0;
+  box-shadow:0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Messages */
+.msg{
+  max-width:82%;padding:6px 8px;border-radius:8px;
+  font-size:13.5px;line-height:1.4;position:relative;
+  animation:slideUp .35s ease both;
+  box-shadow:0 1px 1px rgba(0,0,0,0.08);
+}
+.msg-in{
+  background:#1f2c33;color:rgba(255,255,255,0.9);
+  align-self:flex-start;border-radius:0 8px 8px 8px;
+}
+.msg-out{
+  background:#005c4b;color:rgba(255,255,255,0.92);
+  align-self:flex-end;border-radius:8px 0 8px 8px;
+}
+.msg-img{
+  width:100%;border-radius:6px;margin-bottom:6px;overflow:hidden;
+}
+.msg-img-inner{
+  width:100%;height:160px;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:14px;text-align:center;
+  padding:12px;line-height:1.3;
+}
+.msg-text{padding:2px 4px;}
+.msg-text b{color:#fff;}
+.msg-footer{
+  display:flex;justify-content:flex-end;align-items:center;
+  gap:4px;margin-top:3px;padding:0 2px;
+}
+.msg-time{font-size:10.5px;color:rgba(255,255,255,0.45);}
+.msg-ticks{font-size:15px;display:inline-flex;align-items:center;}
+.msg-ticks.sent{color:rgba(255,255,255,0.35);}
+.msg-ticks.delivered{color:rgba(255,255,255,0.45);}
+.msg-ticks.read{color:#53bdeb;}
+
+.msg-cta{
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;padding:10px 0 4px;margin-top:6px;
+  border-top:1px solid rgba(255,255,255,0.06);
+  color:#53bdeb;font-size:13.5px;font-weight:500;cursor:pointer;
+}
+.msg-cta:hover{color:#7ecef4;}
+.msg-cta svg{width:16px;height:16px;fill:currentColor;}
+
+/* Typing indicator */
+.typing-indicator{
+  align-self:flex-start;background:#1f2c33;
+  padding:12px 16px;border-radius:0 8px 8px 8px;
+  display:flex;gap:4px;
+}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.4);
+  animation:typing 1.4s infinite ease-in-out;
+}
+.typing-dot:nth-child(2){animation-delay:.2s;}
+.typing-dot:nth-child(3){animation-delay:.4s;}
+
+/* Input bar */
+.wa-inputbar{
+  background:#1f2c33;padding:6px 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.wa-inputbar .emoji svg{width:24px;height:24px;fill:var(--wa-secondary);cursor:pointer;}
+.wa-input-field{
+  flex:1;background:#2a3942;border:none;border-radius:8px;
+  padding:10px 14px;font-size:14px;color:rgba(255,255,255,0.85);
+  outline:none;
+}
+.wa-input-field::placeholder{color:rgba(255,255,255,0.3);}
+.wa-inputbar .mic svg{width:24px;height:24px;fill:var(--wa-secondary);cursor:pointer;}
+
+/* Notification banner on phone */
+.notif-banner{
+  position:absolute;top:44px;left:8px;right:8px;
+  background:rgba(31,44,51,0.97);border-radius:14px;
+  padding:12px 14px;display:flex;gap:10px;align-items:flex-start;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);z-index:50;
+  animation:notifSlide .35s ease both;
+  backdrop-filter:blur(10px);
+}
+.notif-banner .notif-icon{
+  width:40px;height:40px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#ff9800,#f44336);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.notif-banner .notif-content{flex:1;}
+.notif-banner .notif-app{font-size:10px;color:var(--wa-teal);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.notif-banner .notif-title{font-size:13px;font-weight:600;color:#fff;margin-top:1px;}
+.notif-banner .notif-body{font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;line-height:1.3;}
+.notif-banner .notif-time{font-size:10px;color:rgba(255,255,255,0.3);flex-shrink:0;margin-top:2px;}
+
+/* ===== SIDE PANEL ===== */
+.side-panel{
+  width:380px;display:flex;flex-direction:column;gap:16px;
+}
+
+.info-card{
+  background:rgba(31,44,51,0.6);border-radius:16px;padding:20px;
+  border:1px solid rgba(255,255,255,0.05);
+  animation:fadeIn .5s ease both;
+}
+.info-card h3{
+  font-size:13px;font-weight:700;color:var(--wa-teal);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;
+}
+.info-row{
+  display:flex;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:rgba(255,255,255,0.45);}
+.info-value{color:#fff;font-weight:600;}
+.info-value.green{color:var(--wa-teal);}
+
+/* Live counter */
+.live-counter{
+  display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;
+}
+.counter-box{
+  flex:1;min-width:70px;background:rgba(0,168,132,0.08);border-radius:10px;
+  padding:12px;text-align:center;border:1px solid rgba(0,168,132,0.15);
+}
+.counter-num{
+  font-size:24px;font-weight:800;color:#fff;
+  animation:countUp .4s ease both;
+}
+.counter-label{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* Progress bar */
+.progress-wrap{margin-top:12px;}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;}
+.progress-bar{
+  height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;
+}
+.progress-fill{
+  height:100%;border-radius:3px;background:linear-gradient(90deg,var(--wa-teal),#25d366);
+  transition:width 1.5s ease;
+}
+
+/* Customer journey log */
+.journey-log{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.08) transparent;}
+.journey-item{
+  display:flex;gap:10px;align-items:flex-start;padding:6px 0;
+  font-size:12px;animation:slideUp .3s ease both;
+}
+.journey-dot{
+  width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;
+}
+.journey-dot.sent{background:#667781;}
+.journey-dot.delivered{background:#53bdeb;}
+.journey-dot.read{background:var(--wa-teal);}
+.journey-dot.clicked{background:#f59e0b;}
+.journey-dot.ordered{background:#ef4444;}
+.journey-name{color:rgba(255,255,255,0.7);font-weight:600;}
+.journey-action{color:rgba(255,255,255,0.4);}
+.journey-time{color:rgba(255,255,255,0.25);margin-left:auto;flex-shrink:0;}
+
+/* Order confirmation */
+.order-confirm{
+  background:rgba(0,168,132,0.08);border:1px solid rgba(0,168,132,0.2);
+  border-radius:12px;padding:16px;text-align:center;margin-top:8px;
+  animation:slideUp .4s ease both;
+}
+.order-confirm .order-icon{font-size:32px;margin-bottom:6px;}
+.order-confirm .order-title{font-size:14px;font-weight:700;color:#fff;}
+.order-confirm .order-sub{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.order-confirm .order-amount{font-size:22px;font-weight:800;color:var(--wa-teal);margin-top:6px;}
+
+/* Hidden by default */
+.hidden{display:none !important;}
+
+/* Responsive */
+@media(max-width:840px){
+  .campaign-selector{grid-template-columns:1fr 1fr;}
+  .campaign-builder-head{align-items:flex-start;flex-direction:column;gap:4px;}
+  .stage{flex-direction:column;padding:16px;}
+  .phone{width:100%;max-width:400px;height:680px;}
+  .side-panel{width:100%;max-width:400px;}
+}
+@media(max-width:520px){
+  .campaign-selector{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- CONTROL BAR -->
+<div class="control-bar">
+  <div class="title-area">
+    <div class="wa-icon">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </div>
+    <div>
+      <h1>Sweet India Clyde — WhatsApp Broadcast Demo</h1>
+      <div class="subtitle">Interactive customer journey simulation</div>
+    </div>
+  </div>
+  <div class="step-pills">
+    <div class="step-pill active" id="pill1"><span class="num">1</span>Broadcast Sent</div>
+    <div class="step-pill" id="pill2"><span class="num">2</span>Customer Receives</div>
+    <div class="step-pill" id="pill3"><span class="num">3</span>Customer Reads</div>
+    <div class="step-pill" id="pill4"><span class="num">4</span>Clicks Order</div>
+    <div class="step-pill" id="pill5"><span class="num">5</span>Places Order</div>
+  </div>
+  <button class="cta-btn" id="nextBtn" onclick="nextStep()">Start Demo →</button>
+</div>
+
+<!-- CAMPAIGN BUILDER -->
+<div class="campaign-builder">
+  <div class="campaign-builder-inner">
+    <div class="campaign-builder-head">
+      <div>
+        <div class="campaign-builder-title">Campaign Builder</div>
+        <div class="campaign-builder-sub">Choose a ready-to-send WhatsApp broadcast scenario</div>
+      </div>
+      <div class="campaign-builder-sub" id="selectedCampaignLabel">Selected: Diwali 2026 Pre-Order</div>
+    </div>
+    <div class="campaign-selector" id="campaignSelector"></div>
+  </div>
+</div>
+
+<!-- MAIN STAGE -->
+<div class="stage">
+
+  <!-- PHONE -->
+  <div class="phone" id="phone">
+    <!-- Status bar -->
+    <div class="phone-statusbar">
+      <span>9:41</span>
+      <span style="display:flex;gap:4px;align-items:center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </span>
+    </div>
+
+    <!-- WA Header -->
+    <div class="wa-header">
+      <div class="wa-back"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+      <div class="wa-avatar biz">🍬</div>
+      <div class="wa-hdr-info">
+        <div class="wa-hdr-name">
+          Sweet India Clyde
+          <span class="verified"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+        </div>
+        <div class="wa-hdr-status" id="headerStatus">Business Account</div>
+      </div>
+      <div class="wa-hdr-icons">
+        <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="wa-chat" id="chatArea">
+      <div class="date-chip">Today</div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="wa-inputbar">
+      <div class="emoji"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg></div>
+      <input type="text" class="wa-input-field" placeholder="Type a message" disabled>
+      <div class="mic"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg></div>
+    </div>
+
+    <!-- Notification banner (hidden initially) -->
+    <div class="notif-banner hidden" id="notifBanner">
+      <div class="notif-icon">🍬</div>
+      <div class="notif-content">
+        <div class="notif-app">WhatsApp</div>
+        <div class="notif-title">Sweet India Clyde</div>
+        <div class="notif-body">🪔 Diwali is here! Pre-order your fresh sweet boxes now...</div>
+      </div>
+      <div class="notif-time">now</div>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side-panel" id="sidePanel">
+    <!-- Campaign info card -->
+    <div class="info-card" id="campaignCard">
+      <h3>📡 Campaign Details</h3>
+      <div class="info-row"><span class="info-label">Campaign</span><span class="info-value" id="detailCampaign">Diwali 2026 Pre-Order</span></div>
+      <div class="info-row"><span class="info-label">Segment</span><span class="info-value" id="detailSegment">All Customers</span></div>
+      <div class="info-row"><span class="info-label">Total Contacts</span><span class="info-value" id="detailContacts">2,847</span></div>
+      <div class="info-row"><span class="info-label">Template</span><span class="info-value" id="detailTemplate">Diwali Promo v2</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="info-value green" id="campaignStatus">Ready to Send</span></div>
+    </div>
+
+    <!-- Live Stats -->
+    <div class="info-card" id="statsCard">
+      <h3>📊 Live Delivery Stats</h3>
+      <div class="live-counter">
+        <div class="counter-box"><div class="counter-num" id="cSent">0</div><div class="counter-label">Sent</div></div>
+        <div class="counter-box"><div class="counter-num" id="cDelivered">0</div><div class="counter-label">Delivered</div></div>
+        <div class="counter-box"><div class="counter-num" id="cRead">0</div><div class="counter-label">Read</div></div>
+        <div class="counter-box"><div class="counter-num" id="cClicked">0</div><div class="counter-label">Clicked</div></div>
+      </div>
+      <div class="progress-wrap" style="margin-top:16px;">
+        <div class="progress-label"><span>Delivery Progress</span><span id="progressPct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Journey log -->
+    <div class="info-card" id="journeyCard">
+      <h3>🔄 Live Customer Journey</h3>
+      <div class="journey-log" id="journeyLog"></div>
+    </div>
+
+    <!-- Order card (hidden) -->
+    <div class="info-card hidden" id="orderCard">
+      <h3>🎉 Order Received!</h3>
+      <div class="order-confirm">
+        <div class="order-icon" id="orderIcon">🛒</div>
+        <div class="order-title">Priya Sharma placed an order</div>
+        <div class="order-sub" id="orderItems">Premium Diwali Hamper × 2, Kaju Katli Box × 3</div>
+        <div class="order-amount" id="orderTotal">A$253.00</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 0;
+const totalSteps = 5;
+const chat = document.getElementById('chatArea');
+const btn = document.getElementById('nextBtn');
+
+const campaigns = {
+  diwali: {
+    id:'diwali',
+    name:'DIWALI',
+    emoji:'🪔',
+    gradient:['#ff6f00','#d84315','#bf360c'],
+    imageTitle:'🪔 Diwali Sweet Boxes 2026<br>Fresh • Authentic • No Preservatives',
+    broadcastMessage:`Namaste! 🙏<br><br>
+        Diwali is around the corner and <b>Sweet India Clyde</b> is now taking pre-orders for fresh sweet boxes!<br><br>
+        🎁 <b>Kaju Katli Box</b> — A$25<br>
+        🎁 <b>Premium Assorted Box</b> — A$45<br>
+        🎁 <b>Grand Diwali Hamper</b> — A$89<br>
+        🎁 <b>Corporate Gift Box (10 pcs)</b> — A$399<br><br>
+        All sweets made fresh daily. Zero preservatives. Pre-order now and skip the Diwali rush! 🪔✨`,
+    customerReply:'Hi! I want to pre-order for Diwali 🪔',
+    businessReply:`Namaste Priya! 🙏 Great choice!<br><br>
+          Here's what we have available for Diwali pre-orders:<br><br>
+          1️⃣ Kaju Katli Box (500g) — A$25<br>
+          2️⃣ Premium Assorted (1kg) — A$45<br>
+          3️⃣ Grand Diwali Hamper — A$89<br>
+          4️⃣ Corporate Gift Box (10 pcs) — A$399<br><br>
+          Which ones would you like? You can also mix and match! 😊`,
+    customerOrder:`I'll take 2 Grand Diwali Hampers and 3 Kaju Katli boxes please! 🎁`,
+    orderSummary:`Perfect! Here's your order summary:<br><br>
+          🎁 Grand Diwali Hamper × 2 = A$178<br>
+          🎁 Kaju Katli Box × 3 = A$75<br>
+          ━━━━━━━━━━━━━━<br>
+          <b>Total: A$253.00</b><br><br>
+          📅 Pickup: Oct 28 (2 days before Diwali)<br>
+          📍 Sweet India Clyde<br><br>
+          Pay on pickup or pay now via the link below 👇`,
+    orderConfirm:`✅ <b>Order Confirmed!</b><br><br>
+              Order #SI-DW-4821<br>
+              We'll send you a reminder on Oct 27th.<br><br>
+              Thank you Priya! Happy Diwali! 🪔🎉`,
+    orderItems:'Grand Diwali Hamper × 2, Kaju Katli Box × 3',
+    orderTotal:'A$253.00',
+    campaignName:'Diwali 2026 Pre-Order',
+    segment:'All Customers',
+    contacts:2847,
+    templateName:'Diwali Promo v2',
+    notificationText:'🪔 Diwali is here! Pre-order your fresh sweet boxes now...',
+    cta:'🛒 Pre-Order Now',
+    payCta:'💳 Pay A$253.00'
+  },
+  rainy: {
+    id:'rainy',
+    name:'Rainy Day Chai Special',
+    emoji:'🌧️',
+    gradient:['#1f6f8b','#0f4c5c','#13293d'],
+    imageTitle:'🌧️ Rainy Day Chai Special<br>Hot Snacks • Cozy Combos • Clyde Pickup',
+    broadcastMessage:`Namaste! ☔<br><br>
+        Rain has arrived in Clyde, and <b>Sweet India Clyde</b> has the perfect cozy fix waiting for you.<br><br>
+        ☕ <b>Chai + Samosa Combo</b> — A$12<br>
+        ☕ <b>Masala Chai</b> — A$5<br>
+        🥟 <b>Samosa Platter (6pc)</b> — A$15<br>
+        🍔 <b>Vada Pav (4pc)</b> — A$14<br><br>
+        Warm up your afternoon with fresh chai, crispy snacks, and comfort food made for rainy weather. 🌧️`,
+    customerReply:'Hi! Rainy day chai sounds perfect ☔',
+    businessReply:`Hi Priya! ☕ Great timing.<br><br>
+          Today's rainy day menu is ready:<br><br>
+          1️⃣ Chai + Samosa Combo — A$12<br>
+          2️⃣ Masala Chai — A$5<br>
+          3️⃣ Samosa Platter (6pc) — A$15<br>
+          4️⃣ Vada Pav (4pc) — A$14<br><br>
+          Tell us what you would like and we will keep it hot for pickup. 😊`,
+    customerOrder:'Can I get 2 Chai + Samosa Combos and 1 Vada Pav pack please? ☕',
+    orderSummary:`Perfect! Here's your order summary:<br><br>
+          ☕ Chai + Samosa Combo × 2 = A$24<br>
+          🍔 Vada Pav (4pc) × 1 = A$14<br>
+          ━━━━━━━━━━━━━━<br>
+          <b>Total: A$38.00</b><br><br>
+          📅 Pickup: Today after 5:00 PM<br>
+          📍 Sweet India Clyde<br><br>
+          Pay on pickup or pay now via the link below 👇`,
+    orderConfirm:`✅ <b>Order Confirmed!</b><br><br>
+              Order #SI-RN-2184<br>
+              We will keep the chai hot and snacks crispy.<br><br>
+              Thank you Priya! Stay warm. ☔`,
+    orderItems:'Chai + Samosa Combo × 2, Vada Pav (4pc) × 1',
+    orderTotal:'A$38.00',
+    campaignName:'Rainy Day Chai Special',
+    segment:'Weather-triggered Clyde locals',
+    contacts:1264,
+    templateName:'Rainy Chai v1',
+    notificationText:'🌧️ 14C Clyde - Perfect chai weather. Hot combos ready now...',
+    cta:'☕ Order Chai Now',
+    payCta:'💳 Pay A$38.00',
+    weatherBadge:'🌧️ 14C Clyde - Perfect chai weather'
+  },
+  eid: {
+    id:'eid',
+    name:'Eid Mubarak',
+    emoji:'🌙',
+    gradient:['#0f766e','#0b4f6c','#123524'],
+    imageTitle:'🌙 Eid Mubarak Feast<br>Family Packs • Sweets • Celebration',
+    broadcastMessage:`Eid Mubarak from <b>Sweet India Clyde</b>! 🌙<br><br>
+        Celebrate with a family feast made fresh for sharing.<br><br>
+        🍛 <b>Biryani Family Pack</b> — A$45<br>
+        🥣 <b>Sheer Khurma</b> — A$18<br>
+        🎁 <b>Eid Gift Box</b> — A$55<br>
+        🍲 <b>Haleem Bowl</b> — A$22<br><br>
+        Pre-order your Eid favourites and make the table feel complete. ✨`,
+    customerReply:'Eid Mubarak! I would like to order for the family 🌙',
+    businessReply:`Eid Mubarak, Priya! 🌙<br><br>
+          We have these celebration specials available:<br><br>
+          1️⃣ Biryani Family Pack — A$45<br>
+          2️⃣ Sheer Khurma — A$18<br>
+          3️⃣ Eid Gift Box — A$55<br>
+          4️⃣ Haleem Bowl — A$22<br><br>
+          What can we prepare for your family?`,
+    customerOrder:'Please prepare 1 Biryani Family Pack, 2 Sheer Khurma and 1 Eid Gift Box.',
+    orderSummary:`Perfect! Here's your order summary:<br><br>
+          🍛 Biryani Family Pack × 1 = A$45<br>
+          🥣 Sheer Khurma × 2 = A$36<br>
+          🎁 Eid Gift Box × 1 = A$55<br>
+          ━━━━━━━━━━━━━━<br>
+          <b>Total: A$136.00</b><br><br>
+          📅 Pickup: Eid morning from 11:00 AM<br>
+          📍 Sweet India Clyde<br><br>
+          Pay on pickup or pay now via the link below 👇`,
+    orderConfirm:`✅ <b>Order Confirmed!</b><br><br>
+              Order #SI-EID-6420<br>
+              Your Eid feast will be ready for pickup.<br><br>
+              Thank you Priya! Eid Mubarak. 🌙`,
+    orderItems:'Biryani Family Pack × 1, Sheer Khurma × 2, Eid Gift Box × 1',
+    orderTotal:'A$136.00',
+    campaignName:'Eid Mubarak Family Feast',
+    segment:'Festival family buyers',
+    contacts:1936,
+    templateName:'Eid Feast v1',
+    notificationText:'🌙 Eid Mubarak! Family biryani packs and gift boxes now open...',
+    cta:'🛒 Order Eid Feast',
+    payCta:'💳 Pay A$136.00'
+  },
+  holi: {
+    id:'holi',
+    name:'Holi Colour Fest',
+    emoji:'🎨',
+    gradient:['#ec4899','#f97316','#22c55e'],
+    imageTitle:'🎨 Holi Colour Fest<br>Thandai • Gujiya • Sweet Colours',
+    broadcastMessage:`Happy Holi from <b>Sweet India Clyde</b>! 🎨<br><br>
+        Bring colour, sweets, and smiles to the celebration.<br><br>
+        🥛 <b>Thandai</b> — A$8<br>
+        🥟 <b>Gujiya Box</b> — A$25<br>
+        🍬 <b>Holi Sweet Assorted</b> — A$35<br>
+        🎨 <b>Colour Powder Pack</b> — FREE with any order<br><br>
+        Order ahead and get your free colour pack while stocks last! 🌈`,
+    customerReply:'Happy Holi! I want the colourful sweets and thandai 🎨',
+    businessReply:`Happy Holi, Priya! 🌈<br><br>
+          Here is today's colourful menu:<br><br>
+          1️⃣ Thandai — A$8<br>
+          2️⃣ Gujiya Box — A$25<br>
+          3️⃣ Holi Sweet Assorted — A$35<br>
+          4️⃣ Colour Powder Pack — FREE with any order<br><br>
+          What should we pack for you?`,
+    customerOrder:'Please pack 2 Thandai, 1 Gujiya Box and 1 Holi Sweet Assorted.',
+    orderSummary:`Perfect! Here's your order summary:<br><br>
+          🥛 Thandai × 2 = A$16<br>
+          🥟 Gujiya Box × 1 = A$25<br>
+          🍬 Holi Sweet Assorted × 1 = A$35<br>
+          🎨 Colour Powder Pack = FREE<br>
+          ━━━━━━━━━━━━━━<br>
+          <b>Total: A$76.00</b><br><br>
+          📅 Pickup: Holi morning from 10:00 AM<br>
+          📍 Sweet India Clyde<br><br>
+          Pay on pickup or pay now via the link below 👇`,
+    orderConfirm:`✅ <b>Order Confirmed!</b><br><br>
+              Order #SI-HL-3097<br>
+              Your free colour powder pack is included.<br><br>
+              Thank you Priya! Happy Holi. 🎨`,
+    orderItems:'Thandai × 2, Gujiya Box × 1, Holi Sweet Assorted × 1',
+    orderTotal:'A$76.00',
+    campaignName:'Holi Colour Fest',
+    segment:'Festival sweet lovers',
+    contacts:2218,
+    templateName:'Holi Colours v1',
+    notificationText:'🎨 Happy Holi! Free colour powder pack with every order...',
+    cta:'🌈 Order Holi Treats',
+    payCta:'💳 Pay A$76.00'
+  },
+  weekend: {
+    id:'weekend',
+    name:'Weekend Special',
+    emoji:'🍛',
+    gradient:['#b45309','#7c2d12','#14532d'],
+    imageTitle:'🍛 Weekend Special<br>Curries • Platters • Family Feast',
+    broadcastMessage:`Weekend plans? Let <b>Sweet India Clyde</b> handle dinner. 🍛<br><br>
+        Fresh favourites are ready for pickup this weekend.<br><br>
+        🍗 <b>Butter Chicken + Naan Combo</b> — A$22<br>
+        🧀 <b>Paneer Tikka Platter</b> — A$18<br>
+        👨‍👩‍👧‍👦 <b>Family Feast (4 persons)</b> — A$65<br>
+        🥭 <b>Mango Lassi</b> — FREE with orders over A$50<br><br>
+        Order now and make the weekend easy. ✨`,
+    customerReply:'Hi! Weekend dinner sorted, I want to order 🍛',
+    businessReply:`Hi Priya! Weekend menu is ready. 🍛<br><br>
+          1️⃣ Butter Chicken + Naan Combo — A$22<br>
+          2️⃣ Paneer Tikka Platter — A$18<br>
+          3️⃣ Family Feast (4 persons) — A$65<br>
+          4️⃣ Mango Lassi — FREE with orders over A$50<br><br>
+          What would you like us to prepare?`,
+    customerOrder:'Please make 1 Family Feast and 1 Paneer Tikka Platter.',
+    orderSummary:`Perfect! Here's your order summary:<br><br>
+          👨‍👩‍👧‍👦 Family Feast × 1 = A$65<br>
+          🧀 Paneer Tikka Platter × 1 = A$18<br>
+          🥭 Mango Lassi = FREE<br>
+          ━━━━━━━━━━━━━━<br>
+          <b>Total: A$83.00</b><br><br>
+          📅 Pickup: Saturday 6:30 PM<br>
+          📍 Sweet India Clyde<br><br>
+          Pay on pickup or pay now via the link below 👇`,
+    orderConfirm:`✅ <b>Order Confirmed!</b><br><br>
+              Order #SI-WK-7751<br>
+              Your free Mango Lassi is included.<br><br>
+              Thank you Priya! Enjoy the weekend. 🍛`,
+    orderItems:'Family Feast × 1, Paneer Tikka Platter × 1, Mango Lassi FREE',
+    orderTotal:'A$83.00',
+    campaignName:'Weekend Dinner Special',
+    segment:'Weekend dinner customers',
+    contacts:3152,
+    templateName:'Weekend Special v1',
+    notificationText:'🍛 Weekend dinner made easy. Free Mango Lassi over A$50...',
+    cta:'🛒 Order Weekend Meal',
+    payCta:'💳 Pay A$83.00'
+  }
+};
+
+let selectedCampaignId = 'diwali';
+
+const customers = [
+  {name:'Priya Sharma',time:'10:31 AM'},
+  {name:'Rahul Patel',time:'10:31 AM'},
+  {name:'Anita Gupta',time:'10:32 AM'},
+  {name:'Vikram Singh',time:'10:32 AM'},
+  {name:'Deepa Reddy',time:'10:33 AM'},
+  {name:'Amit Kumar',time:'10:33 AM'},
+  {name:'Sunita Joshi',time:'10:34 AM'},
+  {name:'Ravi Menon',time:'10:34 AM'},
+];
+
+function selectedCampaign() {
+  return campaigns[selectedCampaignId];
+}
+
+function campaignGradient(campaign) {
+  return `linear-gradient(135deg,${campaign.gradient[0]} 0%,${campaign.gradient[1]} 48%,${campaign.gradient[2]} 100%)`;
+}
+
+function formatContacts(value) {
+  return value.toLocaleString();
+}
+
+function derivedMetrics(campaign) {
+  return {
+    sent: campaign.contacts,
+    delivered: Math.round(campaign.contacts * 0.98),
+    read: Math.round(campaign.contacts * 0.89),
+    clicked: Math.round(campaign.contacts * 0.145)
+  };
+}
+
+function renderCampaignSelector() {
+  const selector = document.getElementById('campaignSelector');
+  selector.innerHTML = Object.values(campaigns).map(campaign => `
+    <button class="campaign-card ${campaign.id === selectedCampaignId ? 'active' : ''}" data-campaign-id="${campaign.id}" type="button">
+      <div class="campaign-card-top">
+        <span class="campaign-emoji" style="background:${campaignGradient(campaign)}">${campaign.emoji}</span>
+        <span class="campaign-count">${formatContacts(campaign.contacts)}</span>
+      </div>
+      <div class="campaign-name">${campaign.name}</div>
+      <div class="campaign-segment">${campaign.segment}</div>
+      ${campaign.weatherBadge ? `<div class="weather-badge">${campaign.weatherBadge}</div>` : ''}
+    </button>
+  `).join('');
+
+  selector.querySelectorAll('.campaign-card').forEach(card => {
+    card.addEventListener('click', () => selectCampaign(card.dataset.campaignId));
+  });
+}
+
+function applyCampaignData() {
+  const campaign = selectedCampaign();
+  document.getElementById('selectedCampaignLabel').textContent = `Selected: ${campaign.campaignName}`;
+  document.querySelector('.notif-icon').textContent = campaign.emoji;
+  document.querySelector('.notif-icon').style.background = campaignGradient(campaign);
+  document.querySelector('.notif-body').textContent = campaign.notificationText;
+  document.getElementById('detailCampaign').textContent = campaign.campaignName;
+  document.getElementById('detailSegment').textContent = campaign.segment;
+  document.getElementById('detailContacts').textContent = formatContacts(campaign.contacts);
+  document.getElementById('detailTemplate').textContent = campaign.templateName;
+  document.getElementById('orderIcon').textContent = campaign.emoji;
+  document.getElementById('orderItems').textContent = campaign.orderItems;
+  document.getElementById('orderTotal').textContent = campaign.orderTotal;
+}
+
+function resetDemoState() {
+  currentStep = 0;
+  chat.innerHTML = '<div class="date-chip">Today</div>';
+  document.getElementById('journeyLog').innerHTML = '';
+  document.getElementById('orderCard').classList.add('hidden');
+  document.getElementById('notifBanner').classList.add('hidden');
+  document.getElementById('headerStatus').textContent = 'Business Account';
+  document.getElementById('campaignStatus').textContent = 'Ready to Send';
+  document.getElementById('campaignStatus').style.color = '#00a884';
+  ['cSent','cDelivered','cRead','cClicked'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('progressPct').textContent = '0%';
+  document.getElementById('progressFill').style.width = '0%';
+  for (let i = 1; i <= totalSteps; i++) updatePill(i, i === 1 ? 'active' : '');
+  btn.disabled = false;
+  btn.textContent = 'Start Demo →';
+  btn.onclick = nextStep;
+}
+
+function selectCampaign(id) {
+  if (!campaigns[id] || id === selectedCampaignId) return;
+  selectedCampaignId = id;
+  renderCampaignSelector();
+  applyCampaignData();
+  resetDemoState();
+}
+
+function updatePill(step, state) {
+  const pill = document.getElementById('pill' + step);
+  pill.className = 'step-pill ' + state;
+}
+
+function animateCounter(el, target, duration) {
+  const start = parseInt(el.textContent.replace(/,/g,'')) || 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const current = Math.round(start + (target - start) * progress);
+    el.textContent = current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function addJourneyItem(name, action, dotClass, delay) {
+  setTimeout(() => {
+    const log = document.getElementById('journeyLog');
+    const item = document.createElement('div');
+    item.className = 'journey-item';
+    item.style.animationDelay = '0s';
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    item.innerHTML = `<div class="journey-dot ${dotClass}"></div><span class="journey-name">${name}</span><span class="journey-action">${action}</span><span class="journey-time">${timeStr}</span>`;
+    log.insertBefore(item, log.firstChild);
+  }, delay);
+}
+
+function addMessage(html, cls, delay) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const msg = document.createElement('div');
+      msg.className = 'msg ' + cls;
+      msg.innerHTML = html;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+      resolve(msg);
+    }, delay);
+  });
+}
+
+function showTyping() {
+  const t = document.createElement('div');
+  t.className = 'typing-indicator';
+  t.id = 'typingBubble';
+  t.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  chat.appendChild(t);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typingBubble');
+  if (t) t.remove();
+}
+
+async function step1() {
+  const campaign = selectedCampaign();
+  const metrics = derivedMetrics(campaign);
+  // Broadcast is being sent
+  updatePill(1, 'active');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  document.getElementById('campaignStatus').textContent = 'Sending...';
+  document.getElementById('campaignStatus').style.color = '#f59e0b';
+
+  // Animate counters
+  animateCounter(document.getElementById('cSent'), metrics.sent, 2500);
+  setTimeout(() => {
+    animateCounter(document.getElementById('cDelivered'), metrics.delivered, 2000);
+  }, 800);
+
+  // Progress bar
+  let pct = 0;
+  const pctEl = document.getElementById('progressPct');
+  const fillEl = document.getElementById('progressFill');
+  const interval = setInterval(() => {
+    pct += Math.random() * 8 + 2;
+    if (pct > 98) { pct = 98; clearInterval(interval); }
+    pctEl.textContent = Math.round(pct) + '%';
+    fillEl.style.width = pct + '%';
+  }, 200);
+
+  // Journey log entries
+  customers.forEach((c, i) => {
+    addJourneyItem(c.name, 'Message sent', 'sent', i * 250);
+  });
+
+  // Show notification on phone after delay
+  setTimeout(() => {
+    document.getElementById('phone').classList.add('buzz');
+    document.getElementById('notifBanner').classList.remove('hidden');
+    setTimeout(() => document.getElementById('phone').classList.remove('buzz'), 500);
+  }, 1500);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    pctEl.textContent = '98%';
+    fillEl.style.width = '98%';
+    document.getElementById('campaignStatus').textContent = `${formatContacts(metrics.sent)} Sent`;
+    document.getElementById('campaignStatus').style.color = '#00a884';
+    updatePill(1, 'completed');
+    btn.disabled = false;
+    btn.textContent = 'Next: Customer Receives →';
+  }, 3000);
+}
+
+async function step2() {
+  const campaign = selectedCampaign();
+  const metrics = derivedMetrics(campaign);
+  updatePill(2, 'active');
+  btn.disabled = true;
+
+  // Hide notification, show message
+  document.getElementById('notifBanner').classList.add('hidden');
+  document.getElementById('headerStatus').textContent = 'online';
+
+  // Show typing first
+  showTyping();
+
+  setTimeout(async () => {
+    hideTyping();
+
+    await addMessage(`
+      <div class="msg-img">
+        <div class="msg-img-inner" style="background:${campaignGradient(campaign)};">
+          ${campaign.imageTitle}
+        </div>
+      </div>
+      <div class="msg-text">
+        ${campaign.broadcastMessage}
+      </div>
+      <div class="msg-cta" id="orderCta">
+        <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        ${campaign.cta}
+      </div>
+      <div class="msg-footer">
+        <span class="msg-time">10:30 AM</span>
+        <span class="msg-ticks delivered" id="msgTicks">✓✓</span>
+      </div>
+    `, 'msg-in', 0);
+
+    // Update delivered count
+    setTimeout(() => {
+      animateCounter(document.getElementById('cDelivered'), metrics.delivered, 1000);
+      const fillEl = document.getElementById('progressFill');
+      const pctEl = document.getElementById('progressPct');
+      fillEl.style.width = '100%';
+      pctEl.textContent = '100%';
+    }, 500);
+
+    customers.slice(0, 5).forEach((c, i) => {
+      addJourneyItem(c.name, 'Delivered ✓✓', 'delivered', i * 300 + 400);
+    });
+
+    updatePill(2, 'completed');
+    btn.disabled = false;
+    btn.textContent = 'Next: Customer Reads →';
+  }, 1800);
+}
+
+async function step3() {
+  const campaign = selectedCampaign();
+  const metrics = derivedMetrics(campaign);
+  updatePill(3, 'active');
+  btn.disabled = true;
+
+  // Turn ticks blue (read)
+  const ticks = document.getElementById('msgTicks');
+  ticks.className = 'msg-ticks read';
+
+  // Update read counter
+  animateCounter(document.getElementById('cRead'), metrics.read, 1500);
+
+  // Journey log
+  customers.slice(0, 6).forEach((c, i) => {
+    addJourneyItem(c.name, 'Read message 👀', 'read', i * 250);
+  });
+
+  setTimeout(() => {
+    updatePill(3, 'completed');
+    btn.disabled = false;
+    btn.textContent = 'Next: Clicks Order →';
+  }, 2000);
+}
+
+async function step4() {
+  const campaign = selectedCampaign();
+  const metrics = derivedMetrics(campaign);
+  updatePill(4, 'active');
+  btn.disabled = true;
+
+  // Customer types a reply
+  showTyping();
+  document.getElementById('headerStatus').textContent = 'typing...';
+
+  setTimeout(async () => {
+    hideTyping();
+    document.getElementById('headerStatus').textContent = 'online';
+
+    await addMessage(`
+      <div class="msg-text">${campaign.customerReply}</div>
+      <div class="msg-footer">
+        <span class="msg-time">10:42 AM</span>
+        <span class="msg-ticks read">✓✓</span>
+      </div>
+    `, 'msg-out', 0);
+
+    // Clicked counter
+    animateCounter(document.getElementById('cClicked'), metrics.clicked, 1500);
+
+    addJourneyItem('Priya Sharma', 'Clicked "Pre-Order Now" 🔗', 'clicked', 300);
+    addJourneyItem('Rahul Patel', 'Clicked "Pre-Order Now" 🔗', 'clicked', 600);
+    addJourneyItem('Anita Gupta', 'Clicked "Pre-Order Now" 🔗', 'clicked', 900);
+
+    // Auto-reply from business
+    setTimeout(() => {
+      showTyping();
+      document.getElementById('headerStatus').textContent = 'typing...';
+    }, 1200);
+
+    setTimeout(async () => {
+      hideTyping();
+      document.getElementById('headerStatus').textContent = 'online';
+
+      await addMessage(`
+        <div class="msg-text">
+          ${campaign.businessReply}
+        </div>
+        <div class="msg-footer">
+          <span class="msg-time">10:42 AM</span>
+          <span class="msg-ticks read">✓✓</span>
+        </div>
+      `, 'msg-in', 0);
+
+      updatePill(4, 'completed');
+      btn.disabled = false;
+      btn.textContent = 'Next: Places Order →';
+    }, 2800);
+  }, 2000);
+}
+
+async function step5() {
+  const campaign = selectedCampaign();
+  updatePill(5, 'active');
+  btn.disabled = true;
+
+  // Customer replies with order
+  showTyping();
+  document.getElementById('headerStatus').textContent = 'typing...';
+
+  setTimeout(async () => {
+    hideTyping();
+    document.getElementById('headerStatus').textContent = 'online';
+
+    await addMessage(`
+      <div class="msg-text">${campaign.customerOrder}</div>
+      <div class="msg-footer">
+        <span class="msg-time">10:44 AM</span>
+        <span class="msg-ticks read">✓✓</span>
+      </div>
+    `, 'msg-out', 0);
+
+    // Business confirms
+    setTimeout(() => {
+      showTyping();
+      document.getElementById('headerStatus').textContent = 'typing...';
+    }, 1000);
+
+    setTimeout(async () => {
+      hideTyping();
+      document.getElementById('headerStatus').textContent = 'online';
+
+      await addMessage(`
+        <div class="msg-text">
+          ${campaign.orderSummary}
+        </div>
+        <div class="msg-cta">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          ${campaign.payCta}
+        </div>
+        <div class="msg-footer">
+          <span class="msg-time">10:45 AM</span>
+          <span class="msg-ticks read">✓✓</span>
+        </div>
+      `, 'msg-in', 0);
+
+      // Customer confirms
+      setTimeout(async () => {
+        await addMessage(`
+          <div class="msg-text">Done! Payment complete ✅ Thank you!</div>
+          <div class="msg-footer">
+            <span class="msg-time">10:46 AM</span>
+            <span class="msg-ticks read">✓✓</span>
+          </div>
+        `, 'msg-out', 0);
+
+        // Final confirmation from business
+        setTimeout(async () => {
+          await addMessage(`
+            <div class="msg-text">
+              ${campaign.orderConfirm}
+            </div>
+            <div class="msg-footer">
+              <span class="msg-time">10:46 AM</span>
+              <span class="msg-ticks read">✓✓</span>
+            </div>
+          `, 'msg-in', 0);
+
+          // Show order card
+          document.getElementById('orderCard').classList.remove('hidden');
+
+          addJourneyItem('Priya Sharma', `Order placed — ${campaign.orderTotal.replace('.00','')} 🎉`, 'ordered', 200);
+          addJourneyItem('Rahul Patel', `Order placed — ${campaign.orderTotal.replace('.00','')} 🎉`, 'ordered', 600);
+
+          updatePill(5, 'completed');
+          btn.textContent = '✅ Demo Complete — Restart';
+          btn.disabled = false;
+          btn.onclick = () => location.reload();
+        }, 1500);
+      }, 1200);
+    }, 2500);
+  }, 1500);
+}
+
+function nextStep() {
+  currentStep++;
+  if (currentStep === 1) step1();
+  else if (currentStep === 2) step2();
+  else if (currentStep === 3) step3();
+  else if (currentStep === 4) step4();
+  else if (currentStep === 5) step5();
+}
+
+renderCampaignSelector();
+applyCampaignData();
+</script>
+</body>
+</html>
